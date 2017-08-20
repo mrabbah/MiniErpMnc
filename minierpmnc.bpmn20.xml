@@ -1,0 +1,1006 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/labelisationprojets">
+  <process id="labelisationProjet" name="Labelisation processus de Projets" isExecutable="true">
+    <startEvent id="start"></startEvent>
+    <userTask id="initiateLabelisationProjets" name="initiatiate labelisation projets" activiti:candidateGroups="ROLE_PP" activiti:formKey="/labelisationProjet/create">
+      <documentation>Labelisation projets par ${username}</documentation>
+    </userTask>
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="initiateLabelisationProjets"></sequenceFlow>
+    <parallelGateway id="parallelgateway1" name="Parallel Gateway"></parallelGateway>
+    <userTask id="usertask2" name="Compléter la fiche synthèse" activiti:candidateGroups="ROLE_BP" activiti:formKey="/labelisationProjet/completeFicheSynthese">
+      <documentation>Cette phase vous permet de compléter la fiche synthèse du projet</documentation>
+    </userTask>
+    <sequenceFlow id="flow2" sourceRef="parallelgateway1" targetRef="usertask5"></sequenceFlow>
+    <sequenceFlow id="flow4" sourceRef="initiateLabelisationProjets" targetRef="parallelgateway1"></sequenceFlow>
+    <parallelGateway id="parallelgateway2" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow5" sourceRef="usertask2" targetRef="parallelgateway2"></sequenceFlow>
+    <userTask id="usertask3" name="Approbation des règles de confidentialités" activiti:candidateGroups="ROLE_PP" activiti:formKey="/labelisationProjet/validateRegles">
+      <documentation>Merci d'approver les règles de confidetialités indiquez dans le document ci-joint</documentation>
+    </userTask>
+    <sequenceFlow id="flow6" sourceRef="parallelgateway2" targetRef="usertask3"></sequenceFlow>
+    <sequenceFlow id="flow7" sourceRef="parallelgateway2" targetRef="mailtask2"></sequenceFlow>
+    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow8" sourceRef="usertask3" targetRef="exclusivegateway1"></sequenceFlow>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <sequenceFlow id="flow9" sourceRef="exclusivegateway1" targetRef="endevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${accepter == false}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="usertask5" name="Vérifier la recevabilté" activiti:candidateGroups="ROLE_BP" activiti:formKey="/labelisationProjet/checkRecevabilite">
+      <documentation>Cette étape vous permet de valider la recevabilté du projet R&amp;D</documentation>
+    </userTask>
+    <sequenceFlow id="flow10" sourceRef="usertask5" targetRef="exclusivegateway7"></sequenceFlow>
+    <userTask id="usertask6" name="- Analyse des conflits d’intérêts - Identification autres clusters associés à la proposition " activiti:candidateGroups="ROLE_BP" activiti:formKey="/labelisationProjet/analyseConflitInteret">
+      <documentation>Cette étape vous permets de préciser les conflits d'intérêt</documentation>
+    </userTask>
+    <sequenceFlow id="flow11" sourceRef="exclusivegateway1" targetRef="usertask6">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${accepter == true}]]></conditionExpression>
+    </sequenceFlow>
+    <parallelGateway id="parallelgateway3" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow15" sourceRef="parallelgateway3" targetRef="mailtask3"></sequenceFlow>
+    <sequenceFlow id="flow16" sourceRef="parallelgateway3" targetRef="mailtask4"></sequenceFlow>
+    <sequenceFlow id="flow17" sourceRef="mailtask4" targetRef="usertask13"></sequenceFlow>
+    <userTask id="usertask13" name="Phase préselection" activiti:candidateGroups="ROLE_CT" activiti:formKey="/labelisationProjet/preselect">
+      <documentation>A cette étape, vous laissez ou retenez la proposition donnée.</documentation>
+    </userTask>
+    <userTask id="usertask14" name="upload la fiche technique &amp; la présentation détaillée" activiti:candidateGroups="ROLE_PP" activiti:formKey="/labelisationProjet/uploadfiles">
+      <documentation>Nous vous informons que nous retenons votre proposition et nous vous invitons à uploader la fiche technique et la présentation du projet.</documentation>
+    </userTask>
+    <sequenceFlow id="flow19" sourceRef="usertask13" targetRef="exclusivegateway2"></sequenceFlow>
+    <exclusiveGateway id="exclusivegateway2" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow20" name="Préselectionné" sourceRef="parallelgateway4" targetRef="usertask14"></sequenceFlow>
+    <sequenceFlow id="flow21" name="Rejeté" sourceRef="exclusivegateway2" targetRef="mailtask9">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${preselect == 0}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="endevent2" name="End"></endEvent>
+    <sequenceFlow id="flow22" sourceRef="mailtask9" targetRef="endevent2"></sequenceFlow>
+    <sequenceFlow id="flow23" name="Demande ré-audition en Commission Thématique" sourceRef="exclusivegateway2" targetRef="mailtask8">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${preselect == 2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow24" sourceRef="mailtask8" targetRef="usertask13"></sequenceFlow>
+    <sequenceFlow id="flow25" sourceRef="parallelgateway4" targetRef="mailtask5"></sequenceFlow>
+    <parallelGateway id="parallelgateway4" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow28" sourceRef="exclusivegateway2" targetRef="parallelgateway4">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${preselect == 1}]]></conditionExpression>
+    </sequenceFlow>
+    <parallelGateway id="parallelgateway5" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow29" sourceRef="usertask14" targetRef="parallelgateway5"></sequenceFlow>
+    <sequenceFlow id="flow30" sourceRef="parallelgateway5" targetRef="mailtask6"></sequenceFlow>
+    <userTask id="usertask19" name="Diffusion fiche technique &amp; Présentation détaillée" activiti:candidateGroups="ROLE_BP" activiti:formKey="/labelisationProjet/diffusionFiles">
+      <documentation>A cette étape vous diffusez la fiche technique et la présentation reçuss du porteur de projet.</documentation>
+    </userTask>
+    <sequenceFlow id="flow31" sourceRef="parallelgateway5" targetRef="usertask19"></sequenceFlow>
+    <sequenceFlow id="flow33" sourceRef="parallelgateway11" targetRef="mailtask20"></sequenceFlow>
+    <userTask id="usertask21" name="Rapporteurs CT : Evaluation proposition selon la grille d’analyse" activiti:candidateGroups="GROUP_CT" activiti:formKey="/labelisationProjet/evaluatePropositionByGrille">
+      <documentation>A cette étape vous uploader la grille d'évaluation pour être envoyer au bureau permanent.</documentation>
+    </userTask>
+    <userTask id="usertask23" name="bp termine l'upload" activiti:candidateGroups="ROLE_BP" activiti:formKey="/labelisationProjet/termineUploadFiles">
+      <documentation>A cette étape vous uploadez la grille d'évaluation pour être envoyer au bureau permanent.</documentation>
+    </userTask>
+    <sequenceFlow id="flow36" sourceRef="parallelgateway11" targetRef="usertask23"></sequenceFlow>
+    <sequenceFlow id="flow37" sourceRef="usertask21" targetRef="mailtask11"></sequenceFlow>
+    <sequenceFlow id="flow40" sourceRef="usertask23" targetRef="usertask26"></sequenceFlow>
+    <userTask id="usertask26" name="Synthèse de l'évaluation lors du 2ème CT" activiti:candidateGroups="ROLE_CT" activiti:formKey="/labelisationProjet/syntheseEvaluation">
+      <documentation>Vous donnez votre opinion en se basant sur la grille d'évaluation reçue.</documentation>
+    </userTask>
+    <exclusiveGateway id="exclusivegateway3" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow42" sourceRef="usertask26" targetRef="exclusivegateway3"></sequenceFlow>
+    <sequenceFlow id="flow43" name="rejeté" sourceRef="exclusivegateway3" targetRef="mailtask16">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${avis_synthese == 0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow44" name="Avis favorable" sourceRef="exclusivegateway3" targetRef="mailtask12">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${avis_synthese == 1}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="endevent3" name="End"></endEvent>
+    <sequenceFlow id="flow45" sourceRef="mailtask16" targetRef="endevent3"></sequenceFlow>
+    <userTask id="usertask29" name="Transmission des documents projet au Comex" activiti:candidateGroups="ROLE_BP" activiti:formKey="/labelisationProjet/transfereFilesToComex">
+      <documentation>Bureau permanent regroupe les résultats des CT et les envoyer au comex.</documentation>
+    </userTask>
+    <sequenceFlow id="flow46" sourceRef="mailtask12" targetRef="usertask29"></sequenceFlow>
+    <sequenceFlow id="flow47" sourceRef="usertask29" targetRef="parallelgateway7"></sequenceFlow>
+    <parallelGateway id="parallelgateway7" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow48" sourceRef="parallelgateway7" targetRef="mailtask17"></sequenceFlow>
+    <sequenceFlow id="flow49" sourceRef="parallelgateway7" targetRef="mailtask13"></sequenceFlow>
+    <sequenceFlow id="flow54" sourceRef="exclusivegateway5" targetRef="mailtask14">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision_comex_7 == false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow55" sourceRef="mailtask18" targetRef="parallelgateway9">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${1==1}]]></conditionExpression>
+    </sequenceFlow>
+    <parallelGateway id="parallelgateway9" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow57" sourceRef="parallelgateway9" targetRef="mailtask19"></sequenceFlow>
+    <sequenceFlow id="flow58" sourceRef="parallelgateway9" targetRef="mailtask23"></sequenceFlow>
+    <endEvent id="endevent4" name="End"></endEvent>
+    <sequenceFlow id="flow59" sourceRef="mailtask23" targetRef="endevent4"></sequenceFlow>
+    <serviceTask id="mailtask1" name="notification mail bp" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>system@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Nouvau projet R&amp;D est déposé pour labellisation</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:expression>Bonjour,&lt;br /&gt;
+Un porteur de projet a déposé une nouvelle demande avec les informations suivants :&lt;br /&gt;&lt;br /&gt;
+&lt;b&gt;Nom&lt;/b&gt;  :  ${interlocuteur} &lt;br /&gt;
+&lt;b&gt;Fonction&lt;/b&gt;  :  ${fonction} &lt;br /&gt;
+&lt;b&gt;Nom projet&lt;/b&gt;  :  ${nom_projet} &lt;br /&gt;
+&lt;b&gt;Nom projet complet &lt;/b&gt;: ${nom_complet} &lt;br /&gt;
+&lt;b&gt;Website &lt;/b&gt; : ${website} &lt;br /&gt;
+&lt;b&gt;Duree du projet &lt;b/&gt;: ${duree} &lt;br /&gt;
+&lt;b&gt;Date debut&lt;/b&gt; : ${date_debut} &lt;br /&gt;
+&lt;b&gt;Resume  en anglais&lt;/b&gt; : ${resume_anglais} &lt;br /&gt;
+&lt;b&gt;Resume en francais&lt;/b&gt; : ${resume_francais} &lt;br /&gt;
+
+Bureau permanent</activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask2" name="Demande approbation règles confidetialités" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Demande d'approbation sur les règles de confidentialité MAROC NUMERIC CLUSTER</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:expression>Bonjour,
+&lt;br/&gt;
+Votre demande a été bien reçu et completé avec les informations suivantes :
+&lt;br /&gt;
+
+&lt;b&gt;Budget : &lt;/b&gt;${budget}</activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask3" name="Diffusion de la propostion au membres de la CT" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Diffusion d'une propostion pour l'étudier</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+
+Merci de prendre connaissance au niveau du système d'une nouvelle propostion
+
+Cdt</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask4" name="Invitation du porteur de projet à se présenter" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+Nous avons l'honneur  de vous inviter chez nous pour la présentation de votre projet.</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Invitation pour la présentation du projet</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask5" name="notification mail a remplir la fiche technique" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Remplir la fiche technique</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour, &lt;br/&gt;
+
+Merci de remplir la fiche technique.</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask6" name="notification mail Bureau MNC" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Diffusion de la fiche technique</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+&lt;br/&gt;&lt;br/&gt;
+Merci de consulter la fiche technique uploadé.
+
+merci</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask8" name="notification mail re-audition" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Re-audition</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+Re-audition</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask9" name="notification mail rejet au porteur" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>arfi.imad@gmail.com</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Rejet Projet</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+ Je vous informe que votre projet a été rejté</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask11" name="envoie de l'evaluation au bureau MNC" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>rapporteur@mnc.org</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Evaluation rapporteur</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour mnc</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask12" name="Information du porteur de l' avis favorable du CT" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Avis favorable</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+Avis favorable</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask13" name="notification mail au COMEX " activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>comex@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Notification réunion</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+mail au comex</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask14" name="Information du porteur de rejet Comex" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhsot</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>comex@comex.org</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Rejeté par l'équipe comix</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+information comix</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <endEvent id="endevent5" name="End"></endEvent>
+    <sequenceFlow id="flow60" sourceRef="mailtask14" targetRef="endevent5"></sequenceFlow>
+    <sequenceFlow id="flow61" sourceRef="mailtask19" targetRef="mailtask15"></sequenceFlow>
+    <serviceTask id="mailtask15" name="Prise de connaissance des projets labellisés lors du CA" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>admin@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>comex@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>info mail</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour, 
+&lt;br/&gt;
+les projets labélisés</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <endEvent id="endevent6" name="End"></endEvent>
+    <sequenceFlow id="flow62" sourceRef="mailtask15" targetRef="endevent6"></sequenceFlow>
+    <sequenceFlow id="flow63" sourceRef="parallelgateway1" targetRef="mailtask1"></sequenceFlow>
+    <serviceTask id="mailtask16" name="Information du porteur de rejet CT" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@locahost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Rejet Ct</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>rejet Ct</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask17" name="Prise de connaissance du projet et de l' évaluation du CT" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>comex@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>prise de connaissance</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+
+prise de connaissance</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask18" name="notification mail au porteur" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhsot</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>comex@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>audition porteur au comix reunion</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour, &lt;br/&gt;
+
+audition porteur par comix</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask19" name="notification CT" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>comex@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>mail d'information</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,&lt;br/&gt;&lt;br/&gt;
+
+mail d'information</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <serviceTask id="mailtask20" name="notification mail commissionCT" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>ct@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour, &lt;b/&gt;&lt;br/&gt;</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Notification ct</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow66" sourceRef="usertask19" targetRef="parallelgateway11"></sequenceFlow>
+    <sequenceFlow id="flow68" sourceRef="exclusivegateway5" targetRef="mailtask18">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision_comex_7 == true}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="usertask40" name="decision comex" activiti:candidateGroups="ROLE_COMEX" activiti:formKey="/labelisationProjet/decisionComex">
+      <documentation>A cette, vous mettez votre choix par rapport au projet.</documentation>
+    </userTask>
+    <sequenceFlow id="flow69" sourceRef="mailtask17" targetRef="usertask40"></sequenceFlow>
+    <sequenceFlow id="flow70" sourceRef="usertask40" targetRef="exclusivegateway5"></sequenceFlow>
+    <sequenceFlow id="flow72" sourceRef="parallelgateway11" targetRef="mailtask21"></sequenceFlow>
+    <serviceTask id="mailtask21" name="Partager les fiches techniques avec les rapporteurs concernés" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>rapport@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>diffusion information</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>diffusion information</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <exclusiveGateway id="exclusivegateway5" name="Exclusive Gateway"></exclusiveGateway>
+    <serviceTask id="mailtask23" name="Information du porteur de la labellisation" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>ca@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Lablisation projet</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Lablisation projet</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow74" sourceRef="parallelgateway1" targetRef="mailtask24"></sequenceFlow>
+    <serviceTask id="mailtask24" name="mail notification porteur" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>system@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Accusé de Réception de votre projet</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>Bonjour,
+Nous accusons réception de votre projet pour la labellisation
+Nous vous tenons à l'avancement de votre requête très prochainement
+Cordialement
+-----------------------------
+MAROC NUMERIC CLUSTER</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <endEvent id="endevent7" name="End"></endEvent>
+    <sequenceFlow id="flow75" sourceRef="parallelgateway10" targetRef="endevent7"></sequenceFlow>
+    <sequenceFlow id="flow76" sourceRef="exclusivegateway7" targetRef="parallelgateway10">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${receive == receive_non }]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow77" sourceRef="exclusivegateway7" targetRef="usertask2">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${receive == receive_oui}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow78" sourceRef="parallelgateway10" targetRef="mailtask25"></sequenceFlow>
+    <serviceTask id="mailtask25" name="mail rejet au porteur" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:string>porteur@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>bp@localhost</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Rejet du dossier candidature labelisation de votre projet</activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:string>rejet</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <exclusiveGateway id="exclusivegateway7" name="Parallel Gateway"></exclusiveGateway>
+    <parallelGateway id="parallelgateway10" name="Exclusive Gateway"></parallelGateway>
+    <parallelGateway id="parallelgateway11" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow79" sourceRef="parallelgateway11" targetRef="usertask21"></sequenceFlow>
+    <sequenceFlow id="flow80" sourceRef="exclusivegateway8" targetRef="usertask21">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${upload_file == true}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="exclusivegateway8" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow82" sourceRef="usertask21" targetRef="exclusivegateway8"></sequenceFlow>
+    <endEvent id="endevent8" name="End"></endEvent>
+    <sequenceFlow id="flow83" sourceRef="exclusivegateway8" targetRef="endevent8">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${upload_file == false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow84" sourceRef="usertask6" targetRef="parallelgateway3"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_labelisationProjet">
+    <bpmndi:BPMNPlane bpmnElement="labelisationProjet" id="BPMNPlane_labelisationProjet">
+      <bpmndi:BPMNShape bpmnElement="parallelgateway1" id="BPMNShape_parallelgateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="217.0" y="83.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask2" id="BPMNShape_usertask2">
+        <omgdc:Bounds height="55.0" width="105.0" x="302.0" y="119.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway2" id="BPMNShape_parallelgateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="525.0" y="95.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask3" id="BPMNShape_usertask3">
+        <omgdc:Bounds height="78.0" width="105.0" x="407.0" y="188.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway1" id="BPMNShape_exclusivegateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="725.0" y="90.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="786.0" y="32.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask5" id="BPMNShape_usertask5">
+        <omgdc:Bounds height="55.0" width="105.0" x="80.0" y="111.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask6" id="BPMNShape_usertask6">
+        <omgdc:Bounds height="117.0" width="282.0" x="913.0" y="11.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway3" id="BPMNShape_parallelgateway3">
+        <omgdc:Bounds height="40.0" width="40.0" x="980.0" y="188.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask13" id="BPMNShape_usertask13">
+        <omgdc:Bounds height="55.0" width="105.0" x="536.0" y="242.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask14" id="BPMNShape_usertask14">
+        <omgdc:Bounds height="55.0" width="142.0" x="645.0" y="324.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway2" id="BPMNShape_exclusivegateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="404.0" y="367.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent2" id="BPMNShape_endevent2">
+        <omgdc:Bounds height="35.0" width="35.0" x="220.0" y="411.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway4" id="BPMNShape_parallelgateway4">
+        <omgdc:Bounds height="40.0" width="40.0" x="506.0" y="367.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway5" id="BPMNShape_parallelgateway5">
+        <omgdc:Bounds height="40.0" width="40.0" x="859.0" y="310.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask19" id="BPMNShape_usertask19">
+        <omgdc:Bounds height="67.0" width="127.0" x="814.0" y="382.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask21" id="BPMNShape_usertask21">
+        <omgdc:Bounds height="65.0" width="147.0" x="650.0" y="514.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask23" id="BPMNShape_usertask23">
+        <omgdc:Bounds height="70.0" width="147.0" x="281.0" y="536.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask26" id="BPMNShape_usertask26">
+        <omgdc:Bounds height="76.0" width="129.0" x="651.0" y="647.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway3" id="BPMNShape_exclusivegateway3">
+        <omgdc:Bounds height="40.0" width="40.0" x="503.0" y="632.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent3" id="BPMNShape_endevent3">
+        <omgdc:Bounds height="35.0" width="35.0" x="165.0" y="635.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask29" id="BPMNShape_usertask29">
+        <omgdc:Bounds height="67.0" width="143.0" x="503.0" y="747.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway7" id="BPMNShape_parallelgateway7">
+        <omgdc:Bounds height="40.0" width="40.0" x="695.0" y="737.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway9" id="BPMNShape_parallelgateway9">
+        <omgdc:Bounds height="40.0" width="40.0" x="1236.0" y="595.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent4" id="BPMNShape_endevent4">
+        <omgdc:Bounds height="35.0" width="35.0" x="1416.0" y="514.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask1" id="BPMNShape_mailtask1">
+        <omgdc:Bounds height="55.0" width="105.0" x="210.0" y="3.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask2" id="BPMNShape_mailtask2">
+        <omgdc:Bounds height="93.0" width="105.0" x="610.0" y="3.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask3" id="BPMNShape_mailtask3">
+        <omgdc:Bounds height="56.0" width="127.0" x="725.0" y="255.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask4" id="BPMNShape_mailtask4">
+        <omgdc:Bounds height="75.0" width="105.0" x="733.0" y="154.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask5" id="BPMNShape_mailtask5">
+        <omgdc:Bounds height="65.0" width="105.0" x="586.0" y="396.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask6" id="BPMNShape_mailtask6">
+        <omgdc:Bounds height="55.0" width="105.0" x="976.0" y="335.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask8" id="BPMNShape_mailtask8">
+        <omgdc:Bounds height="55.0" width="105.0" x="317.0" y="288.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask9" id="BPMNShape_mailtask9">
+        <omgdc:Bounds height="55.0" width="105.0" x="283.0" y="402.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask11" id="BPMNShape_mailtask11">
+        <omgdc:Bounds height="71.0" width="105.0" x="904.0" y="533.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask12" id="BPMNShape_mailtask12">
+        <omgdc:Bounds height="65.0" width="120.0" x="276.0" y="719.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask13" id="BPMNShape_mailtask13">
+        <omgdc:Bounds height="55.0" width="105.0" x="733.0" y="793.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask14" id="BPMNShape_mailtask14">
+        <omgdc:Bounds height="65.0" width="107.0" x="1190.0" y="709.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent5" id="BPMNShape_endevent5">
+        <omgdc:Bounds height="35.0" width="35.0" x="1350.0" y="719.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask15" id="BPMNShape_mailtask15">
+        <omgdc:Bounds height="74.0" width="124.0" x="1413.0" y="685.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent6" id="BPMNShape_endevent6">
+        <omgdc:Bounds height="35.0" width="35.0" x="1490.0" y="635.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask16" id="BPMNShape_mailtask16">
+        <omgdc:Bounds height="55.0" width="136.0" x="255.0" y="640.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask17" id="BPMNShape_mailtask17">
+        <omgdc:Bounds height="65.0" width="129.0" x="796.0" y="704.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask18" id="BPMNShape_mailtask18">
+        <omgdc:Bounds height="55.0" width="105.0" x="1055.0" y="558.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask19" id="BPMNShape_mailtask19">
+        <omgdc:Bounds height="55.0" width="105.0" x="1321.0" y="588.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask20" id="BPMNShape_mailtask20">
+        <omgdc:Bounds height="55.0" width="105.0" x="109.0" y="543.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask40" id="BPMNShape_usertask40">
+        <omgdc:Bounds height="55.0" width="105.0" x="970.0" y="737.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask21" id="BPMNShape_mailtask21">
+        <omgdc:Bounds height="72.0" width="170.0" x="98.0" y="463.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway5" id="BPMNShape_exclusivegateway5">
+        <omgdc:Bounds height="40.0" width="40.0" x="1000.0" y="630.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask23" id="BPMNShape_mailtask23">
+        <omgdc:Bounds height="72.0" width="114.0" x="1256.0" y="504.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask24" id="BPMNShape_mailtask24">
+        <omgdc:Bounds height="55.0" width="105.0" x="368.0" y="42.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent7" id="BPMNShape_endevent7">
+        <omgdc:Bounds height="35.0" width="35.0" x="60.0" y="298.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mailtask25" id="BPMNShape_mailtask25">
+        <omgdc:Bounds height="55.0" width="105.0" x="110.0" y="344.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway7" id="BPMNShape_exclusivegateway7">
+        <omgdc:Bounds height="40.0" width="40.0" x="184.0" y="175.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway10" id="BPMNShape_parallelgateway10">
+        <omgdc:Bounds height="40.0" width="40.0" x="122.0" y="262.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway11" id="BPMNShape_parallelgateway11">
+        <omgdc:Bounds height="40.0" width="40.0" x="506.0" y="435.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway8" id="BPMNShape_exclusivegateway8">
+        <omgdc:Bounds height="40.0" width="40.0" x="850.0" y="580.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent8" id="BPMNShape_endevent8">
+        <omgdc:Bounds height="35.0" width="35.0" x="940.0" y="635.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+        <omgdc:Bounds height="35.0" width="35.0" x="20.0" y="13.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="initiateLabelisationProjets" id="BPMNShape_initiateLabelisationProjets">
+        <omgdc:Bounds height="55.0" width="105.0" x="80.0" y="42.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="55.0" y="30.0"></omgdi:waypoint>
+        <omgdi:waypoint x="132.0" y="42.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="217.0" y="103.0"></omgdi:waypoint>
+        <omgdi:waypoint x="185.0" y="138.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="185.0" y="69.0"></omgdi:waypoint>
+        <omgdi:waypoint x="237.0" y="83.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="407.0" y="146.0"></omgdi:waypoint>
+        <omgdi:waypoint x="430.0" y="139.0"></omgdi:waypoint>
+        <omgdi:waypoint x="456.0" y="117.0"></omgdi:waypoint>
+        <omgdi:waypoint x="525.0" y="115.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="545.0" y="135.0"></omgdi:waypoint>
+        <omgdi:waypoint x="459.0" y="188.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="565.0" y="115.0"></omgdi:waypoint>
+        <omgdi:waypoint x="662.0" y="96.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="459.0" y="188.0"></omgdi:waypoint>
+        <omgdi:waypoint x="745.0" y="130.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+        <omgdi:waypoint x="745.0" y="90.0"></omgdi:waypoint>
+        <omgdi:waypoint x="803.0" y="67.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+        <omgdi:waypoint x="185.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="204.0" y="175.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow11" id="BPMNEdge_flow11">
+        <omgdi:waypoint x="765.0" y="110.0"></omgdi:waypoint>
+        <omgdi:waypoint x="913.0" y="69.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow15" id="BPMNEdge_flow15">
+        <omgdi:waypoint x="1000.0" y="228.0"></omgdi:waypoint>
+        <omgdi:waypoint x="788.0" y="255.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow16" id="BPMNEdge_flow16">
+        <omgdi:waypoint x="980.0" y="208.0"></omgdi:waypoint>
+        <omgdi:waypoint x="838.0" y="191.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow17" id="BPMNEdge_flow17">
+        <omgdi:waypoint x="785.0" y="229.0"></omgdi:waypoint>
+        <omgdi:waypoint x="588.0" y="242.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow19" id="BPMNEdge_flow19">
+        <omgdi:waypoint x="588.0" y="297.0"></omgdi:waypoint>
+        <omgdi:waypoint x="424.0" y="367.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow20" id="BPMNEdge_flow20">
+        <omgdi:waypoint x="546.0" y="387.0"></omgdi:waypoint>
+        <omgdi:waypoint x="645.0" y="351.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="42.0" width="70.0" x="-147.0" y="-18.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow21" id="BPMNEdge_flow21">
+        <omgdi:waypoint x="404.0" y="387.0"></omgdi:waypoint>
+        <omgdi:waypoint x="335.0" y="402.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="30.0" x="10.0" y="0.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow22" id="BPMNEdge_flow22">
+        <omgdi:waypoint x="283.0" y="429.0"></omgdi:waypoint>
+        <omgdi:waypoint x="255.0" y="428.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow23" id="BPMNEdge_flow23">
+        <omgdi:waypoint x="424.0" y="367.0"></omgdi:waypoint>
+        <omgdi:waypoint x="369.0" y="343.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="56.0" width="100.0" x="-126.0" y="-11.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow24" id="BPMNEdge_flow24">
+        <omgdi:waypoint x="422.0" y="315.0"></omgdi:waypoint>
+        <omgdi:waypoint x="588.0" y="297.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow25" id="BPMNEdge_flow25">
+        <omgdi:waypoint x="546.0" y="387.0"></omgdi:waypoint>
+        <omgdi:waypoint x="586.0" y="428.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow28" id="BPMNEdge_flow28">
+        <omgdi:waypoint x="444.0" y="387.0"></omgdi:waypoint>
+        <omgdi:waypoint x="506.0" y="387.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow29" id="BPMNEdge_flow29">
+        <omgdi:waypoint x="787.0" y="351.0"></omgdi:waypoint>
+        <omgdi:waypoint x="839.0" y="351.0"></omgdi:waypoint>
+        <omgdi:waypoint x="859.0" y="330.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow30" id="BPMNEdge_flow30">
+        <omgdi:waypoint x="899.0" y="330.0"></omgdi:waypoint>
+        <omgdi:waypoint x="976.0" y="362.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow31" id="BPMNEdge_flow31">
+        <omgdi:waypoint x="879.0" y="350.0"></omgdi:waypoint>
+        <omgdi:waypoint x="877.0" y="382.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow33" id="BPMNEdge_flow33">
+        <omgdi:waypoint x="526.0" y="475.0"></omgdi:waypoint>
+        <omgdi:waypoint x="161.0" y="543.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow36" id="BPMNEdge_flow36">
+        <omgdi:waypoint x="526.0" y="475.0"></omgdi:waypoint>
+        <omgdi:waypoint x="354.0" y="536.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow37" id="BPMNEdge_flow37">
+        <omgdi:waypoint x="797.0" y="546.0"></omgdi:waypoint>
+        <omgdi:waypoint x="904.0" y="568.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow40" id="BPMNEdge_flow40">
+        <omgdi:waypoint x="354.0" y="606.0"></omgdi:waypoint>
+        <omgdi:waypoint x="623.0" y="627.0"></omgdi:waypoint>
+        <omgdi:waypoint x="715.0" y="647.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow42" id="BPMNEdge_flow42">
+        <omgdi:waypoint x="651.0" y="685.0"></omgdi:waypoint>
+        <omgdi:waypoint x="523.0" y="672.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow43" id="BPMNEdge_flow43">
+        <omgdi:waypoint x="503.0" y="652.0"></omgdi:waypoint>
+        <omgdi:waypoint x="391.0" y="667.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="27.0" x="-9.0" y="-29.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow44" id="BPMNEdge_flow44">
+        <omgdi:waypoint x="523.0" y="672.0"></omgdi:waypoint>
+        <omgdi:waypoint x="336.0" y="719.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="42.0" width="66.0" x="-9.0" y="11.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow45" id="BPMNEdge_flow45">
+        <omgdi:waypoint x="255.0" y="667.0"></omgdi:waypoint>
+        <omgdi:waypoint x="200.0" y="652.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow46" id="BPMNEdge_flow46">
+        <omgdi:waypoint x="396.0" y="751.0"></omgdi:waypoint>
+        <omgdi:waypoint x="503.0" y="780.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow47" id="BPMNEdge_flow47">
+        <omgdi:waypoint x="646.0" y="780.0"></omgdi:waypoint>
+        <omgdi:waypoint x="695.0" y="757.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow48" id="BPMNEdge_flow48">
+        <omgdi:waypoint x="735.0" y="757.0"></omgdi:waypoint>
+        <omgdi:waypoint x="796.0" y="736.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow49" id="BPMNEdge_flow49">
+        <omgdi:waypoint x="715.0" y="777.0"></omgdi:waypoint>
+        <omgdi:waypoint x="785.0" y="793.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow54" id="BPMNEdge_flow54">
+        <omgdi:waypoint x="1020.0" y="670.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1243.0" y="709.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow55" id="BPMNEdge_flow55">
+        <omgdi:waypoint x="1160.0" y="585.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1236.0" y="615.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow57" id="BPMNEdge_flow57">
+        <omgdi:waypoint x="1276.0" y="615.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1321.0" y="615.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow58" id="BPMNEdge_flow58">
+        <omgdi:waypoint x="1256.0" y="595.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1313.0" y="576.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow59" id="BPMNEdge_flow59">
+        <omgdi:waypoint x="1370.0" y="540.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1416.0" y="531.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow60" id="BPMNEdge_flow60">
+        <omgdi:waypoint x="1297.0" y="741.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1350.0" y="736.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow61" id="BPMNEdge_flow61">
+        <omgdi:waypoint x="1373.0" y="643.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1475.0" y="685.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow62" id="BPMNEdge_flow62">
+        <omgdi:waypoint x="1475.0" y="685.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1507.0" y="670.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow63" id="BPMNEdge_flow63">
+        <omgdi:waypoint x="237.0" y="83.0"></omgdi:waypoint>
+        <omgdi:waypoint x="262.0" y="58.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow66" id="BPMNEdge_flow66">
+        <omgdi:waypoint x="877.0" y="449.0"></omgdi:waypoint>
+        <omgdi:waypoint x="843.0" y="497.0"></omgdi:waypoint>
+        <omgdi:waypoint x="526.0" y="475.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow68" id="BPMNEdge_flow68">
+        <omgdi:waypoint x="1020.0" y="630.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1107.0" y="613.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow69" id="BPMNEdge_flow69">
+        <omgdi:waypoint x="925.0" y="736.0"></omgdi:waypoint>
+        <omgdi:waypoint x="970.0" y="764.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow70" id="BPMNEdge_flow70">
+        <omgdi:waypoint x="1022.0" y="737.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1020.0" y="670.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow72" id="BPMNEdge_flow72">
+        <omgdi:waypoint x="506.0" y="455.0"></omgdi:waypoint>
+        <omgdi:waypoint x="268.0" y="499.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow74" id="BPMNEdge_flow74">
+        <omgdi:waypoint x="257.0" y="103.0"></omgdi:waypoint>
+        <omgdi:waypoint x="368.0" y="69.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow75" id="BPMNEdge_flow75">
+        <omgdi:waypoint x="122.0" y="282.0"></omgdi:waypoint>
+        <omgdi:waypoint x="77.0" y="298.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow76" id="BPMNEdge_flow76">
+        <omgdi:waypoint x="204.0" y="215.0"></omgdi:waypoint>
+        <omgdi:waypoint x="142.0" y="262.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow77" id="BPMNEdge_flow77">
+        <omgdi:waypoint x="224.0" y="195.0"></omgdi:waypoint>
+        <omgdi:waypoint x="354.0" y="174.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow78" id="BPMNEdge_flow78">
+        <omgdi:waypoint x="142.0" y="302.0"></omgdi:waypoint>
+        <omgdi:waypoint x="162.0" y="344.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow79" id="BPMNEdge_flow79">
+        <omgdi:waypoint x="526.0" y="475.0"></omgdi:waypoint>
+        <omgdi:waypoint x="649.0" y="499.0"></omgdi:waypoint>
+        <omgdi:waypoint x="723.0" y="514.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow80" id="BPMNEdge_flow80">
+        <omgdi:waypoint x="870.0" y="620.0"></omgdi:waypoint>
+        <omgdi:waypoint x="873.0" y="641.0"></omgdi:waypoint>
+        <omgdi:waypoint x="723.0" y="579.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow82" id="BPMNEdge_flow82">
+        <omgdi:waypoint x="797.0" y="546.0"></omgdi:waypoint>
+        <omgdi:waypoint x="869.0" y="515.0"></omgdi:waypoint>
+        <omgdi:waypoint x="870.0" y="580.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow83" id="BPMNEdge_flow83">
+        <omgdi:waypoint x="870.0" y="620.0"></omgdi:waypoint>
+        <omgdi:waypoint x="957.0" y="635.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow84" id="BPMNEdge_flow84">
+        <omgdi:waypoint x="1054.0" y="128.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1000.0" y="188.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
